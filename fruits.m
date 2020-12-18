@@ -1,40 +1,92 @@
-%%
-% This scripts standardize the .jpg images
-Dir = 'Fruits\apples\'; % write the name of your sub- folder containg images for a specific label
-imagefiles = dir(fullfile(Dir,'*.jpg'));
-for i = 1 : length(imagefiles)
-filename = strcat(Dir ,imagefiles(i).name);
-sf=imread(filename);
-sf=imresize(sf, [100 100]); % standard size of the images, up to the user
-newName = sprintf('%01d.jpg', i); % new file name, up to user
-imwrite(sf,newName); % the new images will be saved in the current folder
-end
-
-%%
 datasetPath = fullfile('Fruits');
 imds = imageDatastore(datasetPath, ...
     'IncludeSubfolders', true, 'LabelSource', 'foldernames');
+
+%% Show random images
 figure;
+perm = randperm(200, 20);
+for i = 1:20
+    subplot(4, 5, i);
+    imshow(imds.Files{perm(i)});
+end
 
+%% Count labels
+labelCount = countEachLabel(imds)
 
+%% Show image size
+img = readimage(imds, 1);
+size(img)
 
+%% Split datastore
+numTrainFiles = 75;
+[imdsTrain, imdsValidation] = splitEachLabel(imds, numTrainFiles, 'randomize');
 
+%% Define Network Architecture for CNN
+layers = [
+    % [height width channel]
+    imageInputLayer([100 100 3])
+    
+    % (filterSize, numOfFilters, name, value)
+    convolution2dLayer(3, 8, 'Padding', 'same')
+    batchNormalizationLayer
+    reluLayer
+    
+    % (poolSize, name, value)
+    maxPooling2dLayer(2, 'Stride', 2)
+    
+    convolution2dLayer(3,16,'Padding','same')
+    batchNormalizationLayer
+    reluLayer
+    
+    maxPooling2dLayer(2,'Stride',2)
+    
+    convolution2dLayer(3,32,'Padding','same')
+    batchNormalizationLayer
+    reluLayer
+    
+    % (outputSize)
+    fullyConnectedLayer(2)
+    softmaxLayer
+    classificationLayer
+];
 
+%% Training Options
+options = trainingOptions('sgdm', ...
+    'InitialLearnRate', 0.01, ...
+    'MaxEpochs', 30, ...
+    'Shuffle', 'every-epoch', ...
+    'ValidationFrequency', 30, ...
+    'Verbose', false, ...
+    'Plots', 'training-progress');
 
+%% Train Network
+net = trainNetwork(imdsTrain, layers, options);
 
+%% Input size of input layer
+inputSize = net.Layers(1).InputSize
 
+%% Initialize testing image size
+I = imread('testApple.png');
 
+%% Show testing image
+figure
+imshow(I)
 
+%% Resize testing image
+I = imresize(I, inputSize(1:2));
 
+%% Show image size
+size(I)
 
+%% Classifying test image
+[label, scores] = classify(net, I);
+label
 
-
-
-
-
-
-
-
+%% Show Predicted Probability
+figure
+imshow(I)
+classNames = net.Layers(end).ClassNames;
+title(string(label) + ", " + num2str(100 * scores(classNames == label), 3) + "%");
 
 
 
