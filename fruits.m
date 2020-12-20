@@ -27,6 +27,7 @@ layers = [
     imageInputLayer([100 100 3])
     
     % (filterSize, numOfFilters, name, value)
+    % numOfFilters => number of neuron
     convolution2dLayer(3, 8, 'Padding', 'same')
     batchNormalizationLayer
     reluLayer
@@ -45,7 +46,7 @@ layers = [
     reluLayer
     
     % (outputSize)
-    fullyConnectedLayer(2)
+    fullyConnectedLayer(4)
     softmaxLayer
     classificationLayer
 ];
