@@ -53,8 +53,8 @@ layers = [
 
 %% Training Options
 options = trainingOptions('sgdm', ...
-    'InitialLearnRate', 0.01, ...
-    'MaxEpochs', 30, ...
+    'InitialLearnRate', 0.1, ...
+    'MaxEpochs', 10, ...
     'Shuffle', 'every-epoch', ...
     'ValidationFrequency', 30, ...
     'Verbose', false, ...
@@ -89,7 +89,19 @@ imshow(I)
 classNames = net.Layers(end).ClassNames;
 title(string(label) + ", " + num2str(100 * scores(classNames == label), 3) + "%");
 
+%% Build Graph
 
+[~, idx] = sort(scores, 'descend');
+idx = idx(4:-1:1);
+classNamesTop = net.Layers(end).ClassNames(idx);
+scoresTop = scores(idx);
+
+figure
+barh(scoresTop)
+xlim([0 1])
+title('Top 4 Predictions')
+xlabel('Probability')
+yticklabels(classNamesTop)
 
 
 
