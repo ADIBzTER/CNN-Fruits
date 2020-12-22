@@ -35,13 +35,13 @@ layers = [
     % (poolSize, name, value)
     maxPooling2dLayer(2, 'Stride', 2)
     
-    convolution2dLayer(3,16,'Padding','same')
+    convolution2dLayer(3, 16, 'Padding', 'same')
     batchNormalizationLayer
     reluLayer
     
     maxPooling2dLayer(2,'Stride',2)
     
-    convolution2dLayer(3,32,'Padding','same')
+    convolution2dLayer(3, 32, 'Padding', 'same')
     batchNormalizationLayer
     reluLayer
     
@@ -53,9 +53,10 @@ layers = [
 
 %% Training Options
 options = trainingOptions('sgdm', ...
-    'InitialLearnRate', 0.1, ...
-    'MaxEpochs', 10, ...
+    'InitialLearnRate', 0.01, ...
+    'MaxEpochs', 4, ...
     'Shuffle', 'every-epoch', ...
+    'ValidationData', imdsValidation, ...
     'ValidationFrequency', 30, ...
     'Verbose', false, ...
     'Plots', 'training-progress');
@@ -67,7 +68,7 @@ net = trainNetwork(imdsTrain, layers, options);
 inputSize = net.Layers(1).InputSize
 
 %% Initialize testing image size
-I = imread('testApple.png');
+I = imread('testOrange.jpg');
 
 %% Show testing image
 figure
@@ -99,7 +100,7 @@ scoresTop = scores(idx);
 figure
 barh(scoresTop)
 xlim([0 1])
-title('Top 4 Predictions')
+title('Predictions')
 xlabel('Probability')
 yticklabels(classNamesTop)
 
